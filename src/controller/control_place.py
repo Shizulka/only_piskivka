@@ -1,7 +1,7 @@
 
 from datetime import time
 from fastapi import APIRouter, Depends
-from pytest import Session
+from sqlalchemy.orm import Session
 
 from src.infrastructure.models import PlaceStatus
 from src.infrastructure.database import get_db
