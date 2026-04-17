@@ -15,3 +15,10 @@ def craete_place (  location : str , open: time  , close: time  , status: PlaceS
     place = service.craete_place( location = location , open = open , close = close , status=status)
 
     return place
+
+@router.post("/all")
+def all_place  ( db: Session = Depends (get_db)):
+    service = PlaceService(db) 
+    places = service.all_place()
+    result = [{"id": p.place_id, "location": p.location} for p in places]
+    return result

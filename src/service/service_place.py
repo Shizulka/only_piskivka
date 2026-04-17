@@ -14,3 +14,6 @@ class PlaceService :
         new_place = Place ( location = location , open = open , close = close , type_place=status)
 
         return self.repository.create (new_place)
+
+    def all_place (self): 
+        return self.db.query(Place).all()
