@@ -6,7 +6,7 @@ from src.infrastructure.database import get_db, db_ping
 from fastapi import FastAPI
 from dotenv import load_dotenv
 
-from src.controller import control_place
+from src.controller import control_place , control_user
 
 load_dotenv()
 
@@ -24,6 +24,7 @@ engine = create_engine(SQLALCHEMY_DATABASE_URL, pool_pre_ping=True)
 SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 
 app.include_router(control_place.router)
+app.include_router(control_user.router)
 
 @app.get("/health")
 def health_check(db: Session = Depends(get_db)):

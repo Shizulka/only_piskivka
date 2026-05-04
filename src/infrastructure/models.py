@@ -43,10 +43,11 @@ class Users(Base):
     )
 
     user_id: Mapped[int] = mapped_column(Integer, primary_key=True)
-    password: Mapped[str] = mapped_column(String(50), nullable=False)
+    password: Mapped[str] = mapped_column(String(150), nullable=False)
     email: Mapped[Optional[str]] = mapped_column(String(100))
     phone_number: Mapped[Optional[str]] = mapped_column(String(50))
     status: Mapped[Optional[UserStatus]] = mapped_column(Enum(UserStatus, values_callable=lambda cls: [member.value for member in cls], name='user_status'))
+    user_name: Mapped[str] = mapped_column(String(100), unique=True, index=True, nullable=False)
 
     review: Mapped[list['Review']] = relationship('Review', back_populates='user')
 
