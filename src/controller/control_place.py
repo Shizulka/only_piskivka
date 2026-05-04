@@ -22,3 +22,10 @@ def all_place  ( db: Session = Depends (get_db)):
     places = service.all_place()
     result = [{"id": p.place_id, "location": p.location} for p in places]
     return result
+
+@router.post("/dalete")
+def delete_place( place_id : int , db: Session = Depends (get_db) ):
+    service = PlaceService(db)  
+    place = service.delete_place(place_id = place_id)
+
+    return place
