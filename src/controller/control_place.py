@@ -8,7 +8,7 @@ from src.infrastructure.models import PlaceStatus, Users
 from src.infrastructure.database import get_db
 from src.service.service_place import PlaceService  
 
-router = APIRouter()
+router = APIRouter(prefix="/place", tags=["Place"])
 
 @router.post("/create")
 def craete_place (  location : str , open: time  , close: time  , status: PlaceStatus ,db: Session = Depends (get_db) ,admin_user: Users = Depends(get_current_admin_user)):

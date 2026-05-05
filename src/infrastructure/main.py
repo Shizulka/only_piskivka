@@ -4,11 +4,11 @@ from sqlalchemy.orm import Session, sessionmaker
 from sqlalchemy import create_engine, text
 from src.infrastructure.dependencies import get_current_user
 from src.infrastructure.models import Users
-from src.infrastructure.database import get_db, db_ping
+from src.infrastructure.database import get_db
 from fastapi import FastAPI
 from dotenv import load_dotenv
 
-from src.controller import control_place , control_user
+from src.controller import control_place , control_user , control_revier
 
 load_dotenv()
 
@@ -27,6 +27,7 @@ SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 
 app.include_router(control_place.router)
 app.include_router(control_user.router)
+app.include_router(control_revier.router)
 
 @app.get("/health")
 def health_check(db: Session = Depends(get_db), current_user: Users = Depends(get_current_user)):
