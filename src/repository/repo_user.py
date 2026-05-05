@@ -17,6 +17,9 @@ class UserRepository:
     
     def get_user_by_phone(self, phone: str):
         return self.db.query(self.model).filter(self.model.phone_number == phone).first()
+    
+    def get_user_by_id(self, user_id: int):
+        return self.db.query(Users).filter(Users.user_id == user_id).first()
 
     def create(self, obj_data):
         self.db.add(obj_data)

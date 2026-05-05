@@ -2,7 +2,7 @@ from typing import Optional
 import datetime
 import enum
 
-from sqlalchemy import Enum, ForeignKeyConstraint, Integer, PrimaryKeyConstraint, String, Text, Time
+from sqlalchemy import Boolean, Enum, ForeignKeyConstraint, Integer, PrimaryKeyConstraint, String, Text, Time
 from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column, relationship
 
 class Base(DeclarativeBase):
@@ -48,8 +48,8 @@ class Users(Base):
     phone_number: Mapped[Optional[str]] = mapped_column(String(50))
     status: Mapped[Optional[UserStatus]] = mapped_column(Enum(UserStatus, values_callable=lambda cls: [member.value for member in cls], name='user_status'))
     user_name: Mapped[str] = mapped_column(String(100), unique=True, index=True, nullable=False)
-
-    review: Mapped[list['Review']] = relationship('Review', back_populates='user')
+    is_admin: Mapped[bool] = mapped_column(Boolean, default=False)
+    review: Mapped[list['Review']] = relationship('Review', back_populates='user') 
 
 
 class Review(Base):

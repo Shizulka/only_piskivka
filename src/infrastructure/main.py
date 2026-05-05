@@ -2,6 +2,8 @@ import os
 from fastapi import FastAPI, Depends, HTTPException
 from sqlalchemy.orm import Session, sessionmaker
 from sqlalchemy import create_engine, text
+from src.infrastructure.dependencies import get_current_user
+from src.infrastructure.models import Users
 from src.infrastructure.database import get_db, db_ping
 from fastapi import FastAPI
 from dotenv import load_dotenv
@@ -27,7 +29,7 @@ app.include_router(control_place.router)
 app.include_router(control_user.router)
 
 @app.get("/health")
-def health_check(db: Session = Depends(get_db)):
+def health_check(db: Session = Depends(get_db), current_user: Users = Depends(get_current_user)):
     try:
         db.execute(text("SELECT 1"))
         return {"status": "ok", "message": "робе"}
