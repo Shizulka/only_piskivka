@@ -6,7 +6,7 @@ from sqlalchemy.orm import Session
 from src.infrastructure.dependencies import get_current_user , get_current_admin_user
 from src.infrastructure.models import PlaceStatus, Users
 from src.infrastructure.database import get_db
-from src.service.service_place import PlaceService  
+from src.application.service_place import PlaceService  
 
 router = APIRouter(prefix="/place", tags=["Place"])
 

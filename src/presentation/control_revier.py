@@ -1,6 +1,6 @@
 from fastapi import APIRouter, Depends
 from sqlalchemy.orm import Session
-from src.service.service_review import ReviewService
+from src.application.service_review import ReviewService
 from src.infrastructure.database import get_db
 from src.infrastructure.dependencies import get_current_user
 from src.infrastructure.models import Users

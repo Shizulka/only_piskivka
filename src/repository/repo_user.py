@@ -1,33 +1,34 @@
 from sqlalchemy.orm import Session
-from src.infrastructure.models import Users  
+from typing import Optional
 
-class UserRepository:
-    def __init__(self, db: Session, model):
+from  src.infrastructure.models import Users as DBUser
+from  src.infrastructure.mappers import UserMapper
+from  src.domain.interfaces import UserRepositoryInterface
+from  src.domain.entities import User as DomainUser
+
+
+class UserRepository(UserRepositoryInterface):
+    def __init__(self, db: Session):
         self.db = db
-        self.model = model  
 
-    def get_all(self, skip: int = 0, limit: int = 100):
-        return self.db.query(self.model).offset(skip).limit(limit).all()
+    def get_user_by_email(self, email: str) -> Optional[DomainUser]:
+        db_user = self.db.query(DBUser).filter(DBUser.email == email).first()
+        return UserMapper.to_domain(db_user)
 
-    def get_by_id(self, id: int):
-        return self.db.get(self.model, id)
-    
-    def get_user_by_email(self, email: str):
-        return self.db.query(Users).filter(Users.email == email).first()
-    
-    def get_user_by_phone(self, phone: str):
-        return self.db.query(self.model).filter(self.model.phone_number == phone).first()
-    
-    def get_user_by_id(self, user_id: int):
-        return self.db.query(Users).filter(Users.user_id == user_id).first()
+    def get_user_by_phone(self, phone: str) -> Optional[DomainUser]:
+        db_user = self.db.query(DBUser).filter(DBUser.phone_number == phone).first()
+        return UserMapper.to_domain(db_user)
 
-    def create(self, obj_data):
-        self.db.add(obj_data)
-        self.db.commit()   
-        self.db.refresh(obj_data)
-        return obj_data
+    def get_user_by_id(self, user_id: int) -> Optional[DomainUser]:
+        db_user = self.db.query(DBUser).filter(DBUser.user_id == user_id).first()
+        return UserMapper.to_domain(db_user)
 
-    def delete(self, obj_data):
-        self.db.delete(obj_data)
-        self.db.commit()   
-        return obj_data
+    def create(self, domain_user: DomainUser) -> DomainUser:
+        db_user = UserMapper.to_db(domain_user)
+        
+        self.db.add(db_user)
+        self.db.commit()
+        self.db.refresh(db_user)
+        
+
+        return UserMapper.to_domain(db_user)

@@ -8,7 +8,7 @@ from src.infrastructure.database import get_db
 from fastapi import FastAPI
 from dotenv import load_dotenv
 
-from src.controller import control_place , control_user , control_revier
+from src.presentation import control_place , control_user , control_revier
 
 load_dotenv()
 
