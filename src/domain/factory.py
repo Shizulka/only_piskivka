@@ -1,4 +1,4 @@
-# domain/factory.py
+
 from  src.domain.entities import User, Place
 from  src.domain.value_objects import Email, TimeRange
 from  src.domain.exceptions import UserAlreadyExistsError
