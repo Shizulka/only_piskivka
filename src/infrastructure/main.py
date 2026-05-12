@@ -8,7 +8,7 @@ from src.infrastructure.database import get_db
 from fastapi import FastAPI
 from dotenv import load_dotenv
 
-from src.presentation import control_place , control_user , control_revier
+from src.presentation import control_place , control_user ,  control_review
 
 load_dotenv()
 
@@ -27,7 +27,7 @@ SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 
 app.include_router(control_place.router)
 app.include_router(control_user.router)
-app.include_router(control_revier.router)
+app.include_router(control_review.router)
 
 @app.get("/health")
 def health_check(db: Session = Depends(get_db), current_user: Users = Depends(get_current_user)):

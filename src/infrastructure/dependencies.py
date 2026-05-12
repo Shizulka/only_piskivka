@@ -6,8 +6,8 @@ from sqlalchemy.orm import Session
 
 from src.infrastructure.models import Users
 from src.infrastructure.database import get_db
-from src.repository.repo_user import UserRepository
-from src.infrastructure.get_password_hash import KEY, ALGORITHM
+from src.infrastructure.repository.repo_user import UserRepository
+from src.security.get_password_hash import KEY, ALGORITHM
 
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="users/login")
 
@@ -26,7 +26,7 @@ def get_current_user(token: str = Depends(oauth2_scheme), db: Session = Depends(
     except (jwt.PyJWTError, ValueError): 
         raise credentials_exception
         
-    user_repo = UserRepository(db, Users)
+    user_repo = UserRepository(db)
     user = user_repo.get_user_by_id(user_id)
     if user is None:
         raise credentials_exception

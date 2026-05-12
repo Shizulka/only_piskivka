@@ -1,29 +1,18 @@
-from datetime import time
 
-from sqlalchemy.orm import Session
-from fastapi import HTTPException
-from src.infrastructure.models import Place
-from src.repository.repo_place import PlaceRepository
+from src.domain.factory import PlaceFactory
+from src.domain.value_objects import TimeRange
+from src.domain.interfaces import PlaceRepositoryInterface
 
-class PlaceService :
-    def __init__ (self , db: Session):
-        self.repository = PlaceRepository(db , Place)
-        self.db = db
+class PlaceService:
+    def __init__(self, place_repo: PlaceRepositoryInterface):
+        self.repository = place_repo
 
-    def craete_place ( self , location : int , open: time  , close: time , status: str): 
-        new_place = Place ( location = location , open = open , close = close , type_place=status)
+    def create_place(self, location: str, open_time: str, close_time: str, status: str):
+        new_place = PlaceFactory.create_place( location=location, open_time=open_time, close_time=close_time,  status=status )
+        return self.repository.create(new_place)
 
-        return self.repository.create (new_place)
+    def all_places(self):
+        return self.repository.get_all_places()
 
-    def all_place (self): 
-        return self.db.query(Place).all()
-
-    def delete_place(self, place_id: int):
-        place = self.repository.db.query(Place).filter(Place.place_id == place_id).first()
-
-        if place is None:
-            raise HTTPException(status_code=404, detail="Place not found")
-
-        return self.repository.delete(place)
-    
-    
+    def delete_place(self, place_id: int) -> bool:
+        return self.repository.delete(place_id)

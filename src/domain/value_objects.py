@@ -1,5 +1,6 @@
 
 from dataclasses import dataclass
+from enum import Enum
 from  src.domain.exceptions import InvalidTimeRangeError, InvalidEmailError
 
 @dataclass(frozen=True)
@@ -18,3 +19,8 @@ class Email:
     def __post_init__(self):
         if "@" not in self.value or "." not in self.value:
             raise InvalidEmailError()
+        
+class PlaceStatus(str, Enum):
+    OPEN = "bar"
+    CLOSED = "cafe"
+    MAINTENANCE = "shop"

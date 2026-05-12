@@ -49,7 +49,7 @@ class PlaceMapper:
                 open_time=db_model.open, 
                 close_time=db_model.close
             ),
-            type_place=db_model.type_place
+            status=db_model.type_place
         )
     
     @staticmethod
@@ -59,7 +59,7 @@ class PlaceMapper:
             location=domain_entity.location,
             open=domain_entity.working_hours.open_time, 
             close=domain_entity.working_hours.close_time,
-            type_place=domain_entity.type_place
+            type_place=domain_entity.status
         )
 
 class ReviewMapper: 
@@ -73,6 +73,7 @@ class ReviewMapper:
             place_id=db_model.place_id,
             user_id=db_model.user_id,
             content_in=db_model.content_in
+        
         )
     
     @staticmethod

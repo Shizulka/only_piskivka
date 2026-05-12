@@ -33,7 +33,7 @@ class Place(Base):
     close: Mapped[datetime.time] = mapped_column(Time, nullable=False)
     type_place: Mapped[PlaceStatus] = mapped_column(Enum(PlaceStatus, values_callable=lambda cls: [member.value for member in cls], name='place_status'), nullable=False)
 
-    review: Mapped[list['Review']] = relationship('Review', back_populates='place')
+    review = relationship("Review", back_populates="place", cascade="all, delete-orphan")
 
 
 class Users(Base):
@@ -49,7 +49,7 @@ class Users(Base):
     status: Mapped[Optional[UserStatus]] = mapped_column(Enum(UserStatus, values_callable=lambda cls: [member.value for member in cls], name='user_status'))
     user_name: Mapped[str] = mapped_column(String(100), unique=True, index=True, nullable=False)
     is_admin: Mapped[bool] = mapped_column(Boolean, default=False)
-    review: Mapped[list['Review']] = relationship('Review', back_populates='user') 
+    review: Mapped[list['Review']] = relationship('Review', back_populates='user', cascade="all, delete-orphan")
 
 
 class Review(Base):
@@ -66,4 +66,4 @@ class Review(Base):
     content_in: Mapped[str] = mapped_column(Text, nullable=False)
 
     place: Mapped['Place'] = relationship('Place', back_populates='review')
-    user: Mapped['Users'] = relationship('Users', back_populates='review')
+    user: Mapped['Users'] = relationship("Users", back_populates="review")
