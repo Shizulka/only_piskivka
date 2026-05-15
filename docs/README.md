@@ -91,7 +91,7 @@ only_piskivka/
    pip install pytest-cov
    ```
 
-2. **Запуск самих тестів:**
+3. **Запуск самих тестів і перевірка покриття:**
    ```bash
-   python -m pytest src/tests/
+   python -m pytest src/tests --cov=src
    ```
