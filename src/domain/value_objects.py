@@ -24,3 +24,8 @@ class PlaceStatus(str, Enum):
     OPEN = "bar"
     CLOSED = "cafe"
     MAINTENANCE = "shop"
+
+class UserStatus(str, Enum):
+    OPEN = "cool"
+    CLOSED = "super cool"
+    MAINTENANCE = "mega cool"
