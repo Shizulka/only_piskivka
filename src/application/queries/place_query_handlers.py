@@ -10,12 +10,6 @@ class GetAllPlacesHandler:
         places = self.repository.get_all_places()
 
         return [
-            PlaceReadModel(
-                id=place.place_id, 
-                location=place.location,
-                open_time=place.working_hours.open_time, 
-                close_time=place.working_hours.close_time,
-                status=place.status
-            )
+            PlaceReadModel(id=place.place_id, location=place.location,open_time=place.working_hours.open_time, close_time=place.working_hours.close_time,status=place.status)
             for place in places
         ]

@@ -11,12 +11,7 @@ class CreateUserHandler:
     def handle(self, command: CreateUserCommand):
         hashed_pwd = get_password_hash(command.password)
         
-        new_user = self.factory.create_user(
-            password_hash=hashed_pwd, 
-            email_str=command.email,  
-            phone_number=command.phone_number,
-            user_name=command.user_name
-        )
+        new_user = self.factory.create_user(password_hash=hashed_pwd, email_str=command.email,  phone_number=command.phone_number,user_name=command.user_name)
         created_user = self.repository.create(new_user)
         return created_user.user_id
 

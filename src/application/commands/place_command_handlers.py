@@ -7,12 +7,7 @@ class CreatePlaceHandler:
         self.repository = place_repo
 
     def handle(self, command: CreatePlaceCommand):
-        new_place = PlaceFactory.create_place(
-            location=command.location,
-            open_time=command.open_time,
-            close_time=command.close_time,
-            status=command.status
-        )
+        new_place = PlaceFactory.create_place(location=command.location,open_time=command.open_time,close_time=command.close_time,status=command.status)
         created_place = self.repository.create(new_place)
         return created_place.place_id
 
