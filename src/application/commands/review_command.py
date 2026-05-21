@@ -9,3 +9,4 @@ class CreateReviewCommand:
 @dataclass
 class DeleteReviewCommand:
     review_id: int
+    user_id: int

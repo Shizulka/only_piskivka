@@ -2,6 +2,10 @@ from fastapi import APIRouter, Depends, HTTPException, status
 from fastapi.security import OAuth2PasswordRequestForm
 from sqlalchemy.orm import Session
 
+from src.application.audit.audit_handlers import UserRegisteredAuditHandler
+from src.application.event.event_bus import EventBus
+from src.application.event.user_event import UserRegisteredEvent
+from src.application.audit.audit_service import ConsoleAuditService
 from src.domain.interfaces import UserRepositoryInterface
 from src.infrastructure.database import get_db
 from src.infrastructure.repository.repo_user import UserRepository
@@ -15,6 +19,7 @@ from src.application.queries.user_queries import AuthenticateUserQuery
 from src.application.queries.user_queries_handlers import AuthenticateUserHandler
 from src.security.get_password_hash import create_access_token
 
+
 router = APIRouter(prefix="/users", tags=["Users"])
 
 
@@ -24,10 +29,15 @@ def get_user_repo(db: Session = Depends(get_db)) -> UserRepositoryInterface:
 
 @router.post("/register", status_code=status.HTTP_201_CREATED)
 def register(   user_data: UserCreate,  user_repo: UserRepositoryInterface = Depends(get_user_repo)):
-    handler = CreateUserHandler(user_repo)
 
     command = CreateUserCommand( password=user_data.password, email=user_data.email, phone_number=user_data.phone_number, user_name=user_data.user_name )
+    audit_service = ConsoleAuditService()
+    event_bus = EventBus()
 
+    event_bus.subscribe(UserRegisteredEvent,UserRegisteredAuditHandler(audit_service))
+
+    handler = CreateUserHandler(user_repo=user_repo,audit_service=audit_service,event_bus=event_bus,use_async=True)
+    
     try:
         created_id = handler.handle(command)
 
