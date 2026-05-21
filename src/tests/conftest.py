@@ -22,7 +22,7 @@ from fastapi.testclient import TestClient
 
 from src.presentation import control_place, control_user, control_review
 from src.infrastructure.database import get_db
-from src.infrastructure.dependencies import get_current_user
+from src.infrastructure.dependencies import get_current_user, get_current_admin_user
 
 _app = FastAPI()
 _app.include_router(control_place.router)
@@ -30,12 +30,12 @@ _app.include_router(control_user.router)
 _app.include_router(control_review.router)
 
 
-def _make_mock_user(user_id=1):
+def _make_mock_user(user_id=1, is_admin=False):
     u = MagicMock()
     u.user_id = user_id
     u.user_name = "степан"
     u.email = "stepan@yahoo.com"
-    u.is_admin = False
+    u.is_admin = is_admin
     return u
 
 
@@ -44,6 +44,17 @@ def client():
     mock_db = MagicMock()
     _app.dependency_overrides[get_db] = lambda: mock_db
     _app.dependency_overrides[get_current_user] = lambda: _make_mock_user()
+    with TestClient(_app) as c:
+        yield c
+    _app.dependency_overrides.clear()
+
+@pytest.fixture
+def admin_client():
+    mock_db = MagicMock()
+    admin = _make_mock_user(is_admin=True)
+    _app.dependency_overrides[get_db] = lambda: mock_db
+    _app.dependency_overrides[get_current_user] = lambda: admin
+    _app.dependency_overrides[get_current_admin_user] = lambda: admin
     with TestClient(_app) as c:
         yield c
     _app.dependency_overrides.clear()

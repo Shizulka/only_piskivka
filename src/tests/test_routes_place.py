@@ -1,73 +1,140 @@
 import pytest
-from datetime import time
 from unittest.mock import MagicMock, patch
 
 from src.domain.exceptions import InvalidTimeRangeError
+from src.application.read_model.place_read_model import PlaceReadModel
 
 class TestGetAllPlaces:
     def test_returns_list(self, client):
-        mock_place = MagicMock()
-        mock_place.place_id = 1
-        mock_place.location = "Вул. Привокзальна, 21"
-        mock_place.working_hours.open_time = time(11, 0)
-        mock_place.working_hours.close_time = time(19, 0)
-        mock_place.status = "bar"
-
-        with patch("src.presentation.control_place.PlaceService") as MockSvc:
-            MockSvc.return_value.all_places.return_value = [mock_place]
+        read_model = PlaceReadModel(
+            id=1,
+            location="Вул. Привокзальна, 21",
+            open_time="11:00",
+            close_time="19:00",
+            status="bar",
+        )
+        with patch("src.presentation.control_place.GetAllPlacesHandler") as MockHandler:
+            MockHandler.return_value.handle.return_value = [read_model]
             resp = client.get("/place/all")
 
         assert resp.status_code == 200
-        assert resp.json()[0]["location"] == "Вул. Привокзальна, 21"
+        data = resp.json()
+        assert len(data) == 1
+        assert data[0]["location"] == "Вул. Привокзальна, 21"
+        assert data[0]["id"] == 1
 
     def test_empty_list(self, client):
-        with patch("src.presentation.control_place.PlaceService") as MockSvc:
-            MockSvc.return_value.all_places.return_value = []
+        with patch("src.presentation.control_place.GetAllPlacesHandler") as MockHandler:
+            MockHandler.return_value.handle.return_value = []
             resp = client.get("/place/all")
 
         assert resp.status_code == 200
         assert resp.json() == []
 
-class TestCreatePlace:
-    def test_success(self, client):
-        mock_place = MagicMock()
-        mock_place.place_id = 10
-        mock_place.location = "Вул. Філіпова, 12"
-        mock_place.working_hours.open_time = "07:30"
-        mock_place.working_hours.close_time = "19:30"
-        mock_place.status = "cafe"
-
-        with patch("src.presentation.control_place.PlaceService") as MockSvc:
-            MockSvc.return_value.create_place.return_value = mock_place
-            resp = client.post(
-                "/place/create",
-                params={"location": "Вул. Філіпова, 12", "open": "07:30:00", "close": "19:30:00", "place_status": "cafe"},
-            )
+    def test_multiple_places_returned(self, client):
+        places = [
+            PlaceReadModel(id=i, location=f"Вул. {i}", open_time="10:00", close_time="20:00", status="bar")
+            for i in range(3)
+        ]
+        with patch("src.presentation.control_place.GetAllPlacesHandler") as MockHandler:
+            MockHandler.return_value.handle.return_value = places
+            resp = client.get("/place/all")
 
         assert resp.status_code == 200
-        assert resp.json()["place_id"] == 10
+        assert len(resp.json()) == 3
 
-    def test_invalid_hours_returns_400(self, client):
-        with patch("src.presentation.control_place.PlaceService") as MockSvc:
-            MockSvc.return_value.create_place.side_effect = InvalidTimeRangeError()
-            resp = client.post(
+    def test_no_auth_required(self, client):
+        with patch("src.presentation.control_place.GetAllPlacesHandler") as MockHandler:
+            MockHandler.return_value.handle.return_value = []
+            resp = client.get("/place/all")
+        assert resp.status_code == 200
+
+class TestCreatePlace:
+    def test_success_returns_201(self, admin_client):
+        with patch("src.presentation.control_place.CreatePlaceHandler") as MockHandler:
+            MockHandler.return_value.handle.return_value = 10
+            resp = admin_client.post(
                 "/place/create",
-                params={"location": "десь", "open": "22:00:00", "close": "08:00:00", "place_status": "cafe"},
+                params={
+                    "location": "Вул. Філіпова, 12",
+                    "open_time": "07:30:00",
+                    "close_time": "19:30:00",
+                    "place_status": "cafe",
+                },
+            )
+
+        assert resp.status_code == 201
+        assert resp.json()["place_id"] == 10
+        assert "message" in resp.json()
+
+    def test_invalid_hours_returns_400(self, admin_client):
+        with patch("src.presentation.control_place.CreatePlaceHandler") as MockHandler:
+            MockHandler.return_value.handle.side_effect = InvalidTimeRangeError()
+            resp = admin_client.post(
+                "/place/create",
+                params={
+                    "location": "десь",
+                    "open_time": "22:00:00",
+                    "close_time": "08:00:00",
+                    "place_status": "cafe",
+                },
             )
 
         assert resp.status_code == 400
 
+    def test_missing_location_returns_422(self, admin_client):
+        resp = admin_client.post(
+            "/place/create",
+            params={"open_time": "09:00:00", "close_time": "18:00:00", "place_status": "bar"},
+        )
+        assert resp.status_code == 422
+
+    def test_non_admin_returns_403(self, client):
+        resp = client.post(
+            "/place/create",
+            params={
+                "location": "Вул. Соборна, 67",
+                "open_time": "09:00:00",
+                "close_time": "18:00:00",
+                "place_status": "bar",
+            },
+        )
+        assert resp.status_code == 403
+
+    def test_handler_receives_correct_command(self, admin_client):
+        with patch("src.presentation.control_place.CreatePlaceHandler") as MockHandler:
+            MockHandler.return_value.handle.return_value = 1
+            admin_client.post(
+                "/place/create",
+                params={
+                    "location": "Вул. Сіркова, 167",
+                    "open_time": "08:00:00",
+                    "close_time": "20:00:00",
+                    "place_status": "shop",
+                },
+            )
+
+        command = MockHandler.return_value.handle.call_args[0][0]
+        assert command.location == "Вул. Сіркова, 167"
+        assert command.status == "shop"
+
 class TestDeletePlace:
-    def test_success(self, client):
-        with patch("src.presentation.control_place.PlaceService") as MockSvc:
-            MockSvc.return_value.delete_place.return_value = True
-            resp = client.delete("/place/1")
+    def test_success_returns_200(self, admin_client):
+        with patch("src.presentation.control_place.DeletePlaceHandler") as MockHandler:
+            MockHandler.return_value.handle.return_value = None
+            resp = admin_client.delete("/place/1")
 
         assert resp.status_code == 200
+        assert "message" in resp.json()
 
-    def test_not_found_returns_404(self, client):
-        with patch("src.presentation.control_place.PlaceService") as MockSvc:
-            MockSvc.return_value.delete_place.return_value = False
-            resp = client.delete("/place/999")
+    def test_non_admin_returns_403(self, client):
+        resp = client.delete("/place/1")
+        assert resp.status_code == 403
 
-        assert resp.status_code == 404
+    def test_delete_calls_handler_with_correct_id(self, admin_client):
+        with patch("src.presentation.control_place.DeletePlaceHandler") as MockHandler:
+            MockHandler.return_value.handle.return_value = None
+            admin_client.delete("/place/42")
+
+        command = MockHandler.return_value.handle.call_args[0][0]
+        assert command.place_id == 42
