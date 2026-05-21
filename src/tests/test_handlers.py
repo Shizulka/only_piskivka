@@ -185,7 +185,7 @@ class TestDeleteReviewHandler:
         self.handler = DeleteReviewHandler(self.mock_repo)
 
     def test_delete_calls_repo(self):
-        command = DeleteReviewCommand(review_id=11)
+        command = DeleteReviewCommand(review_id=11, user_id=1)
         self.handler.handle(command)
         self.mock_repo.delete.assert_called_once_with(11)
 
