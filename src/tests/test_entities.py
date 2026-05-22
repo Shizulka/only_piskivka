@@ -1,8 +1,8 @@
 import pytest
 
-from src.domain.entities import User, Place, Review
-from src.domain.value_objects import Email, TimeRange
-from src.domain.exceptions import EmptyReviewError
+from src.modules.core.domain.entities import User, Place, Review
+from src.modules.core.domain.value_objects import Email, TimeRange
+from src.modules.core.domain.exceptions import EmptyReviewError
 
 
 class TestUser:

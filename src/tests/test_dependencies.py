@@ -2,15 +2,15 @@ import pytest
 from unittest.mock import MagicMock, patch
 from fastapi import HTTPException
 
-from src.infrastructure.dependencies import get_current_user, get_current_admin_user
-from src.infrastructure.database import get_db, db_ping
+from src.modules.core.infrastructure.dependencies import get_current_user, get_current_admin_user
+from src.modules.core.infrastructure.database import get_db, db_ping
 
 class TestGetDb:
     def test_yields_session_and_closes(self):
         mock_session = MagicMock()
         mock_session_local = MagicMock(return_value=mock_session)
 
-        with patch("src.infrastructure.database.SessionLocal", mock_session_local):
+        with patch("src.modules.core.infrastructure.database.SessionLocal", mock_session_local):
             gen = get_db()
             session = next(gen)
             assert session is mock_session
@@ -26,7 +26,7 @@ class TestGetDb:
         mock_session = MagicMock()
         mock_session_local = MagicMock(return_value=mock_session)
 
-        with patch("src.infrastructure.database.SessionLocal", mock_session_local):
+        with patch("src.modules.core.infrastructure.database.SessionLocal", mock_session_local):
             gen = get_db()
             next(gen)
             with pytest.raises(RuntimeError, match="boom"):
@@ -36,7 +36,6 @@ class TestGetDb:
 
 class TestDbPing:
     def test_executes_select_1(self):
-        from sqlalchemy import text
         db = MagicMock()
         db_ping(db)
         db.execute.assert_called_once()
@@ -52,7 +51,7 @@ class TestGetCurrentUser:
 
     def _call(self, token, mock_user=None):
         mock_db = MagicMock()
-        with patch("src.infrastructure.dependencies.UserRepository") as MockRepo:
+        with patch("src.modules.core.infrastructure.dependencies.UserRepository") as MockRepo:
             MockRepo.return_value.get_user_by_id.return_value = mock_user
             return get_current_user(token=token, db=mock_db)
 

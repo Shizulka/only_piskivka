@@ -1,7 +1,7 @@
 import pytest
 
-from src.domain.value_objects import Email, TimeRange, PlaceStatus
-from src.domain.exceptions import InvalidEmailError, InvalidTimeRangeError
+from src.modules.core.domain.value_objects import Email, TimeRange, PlaceStatus
+from src.modules.core.domain.exceptions import InvalidEmailError, InvalidTimeRangeError
 
 class TestEmail:
     def test_valid_email(self):

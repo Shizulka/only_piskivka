@@ -1,8 +1,8 @@
 import pytest
 from unittest.mock import MagicMock
 
-from src.domain.factory import UserFactory, PlaceFactory, ReviewFactory
-from src.domain.exceptions import (
+from src.modules.core.domain.factory import UserFactory, PlaceFactory, ReviewFactory
+from src.modules.core.domain.exceptions import (
     UserAlreadyExistsError,
     InvalidEmailError,
     InvalidTimeRangeError,

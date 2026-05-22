@@ -1,7 +1,7 @@
 import pytest
 from pydantic import ValidationError
 
-from src.infrastructure.schemas import UserCreate, UserOut
+from src.modules.core.infrastructure.schemas import UserCreate, UserOut
 
 class TestUserCreate:
     def test_valid_with_email(self):

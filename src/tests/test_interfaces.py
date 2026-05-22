@@ -1,13 +1,13 @@
 import pytest
 from abc import ABC
 
-from src.domain.interfaces import (
+from src.modules.core.domain.interfaces import (
     UserRepositoryInterface,
     ReviewRepositoryInterface,
     PlaceRepositoryInterface,
 )
-from src.domain.entities import User, Place, Review
-from src.domain.value_objects import Email, TimeRange
+from src.modules.core.domain.entities import User, Place, Review
+from src.modules.core.domain.value_objects import Email, TimeRange
 
 class ConcreteUserRepo(UserRepositoryInterface):
     def get_user_by_email(self, email): return None

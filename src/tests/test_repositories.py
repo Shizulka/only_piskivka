@@ -1,12 +1,12 @@
 import pytest
 from unittest.mock import MagicMock, patch, call
 
-from src.infrastructure.repository.repo_place import PlaceRepository
-from src.infrastructure.repository.repo_review import ReviewRepository
-from src.infrastructure.repository.repo_user import UserRepository
-from src.infrastructure.models import Place as DBPlace, Review as DBReview, Users as DBUser
-from src.domain.entities import Place as DomainPlace, Review as DomainReview, User as DomainUser
-from src.domain.value_objects import Email, TimeRange
+from src.modules.core.infrastructure.repository.repo_place import PlaceRepository
+from src.modules.core.infrastructure.repository.repo_review import ReviewRepository
+from src.modules.core.infrastructure.repository.repo_user import UserRepository
+from src.modules.core.infrastructure.models import Place as DBPlace, Review as DBReview, Users as DBUser
+from src.modules.core.domain.entities import Place as DomainPlace, Review as DomainReview, User as DomainUser
+from src.modules.core.domain.value_objects import Email, TimeRange
 
 
 def _mock_db():
@@ -30,7 +30,6 @@ class TestPlaceRepository:
 
     def test_create_adds_commits_refreshes(self):
         domain = self._domain_place()
-        # Simulate db_place getting an id after refresh
         def fake_refresh(obj):
             obj.place_id = 42
             obj.location = domain.location

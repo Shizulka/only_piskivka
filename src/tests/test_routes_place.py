@@ -1,8 +1,8 @@
 import pytest
-from unittest.mock import MagicMock, patch
+from unittest.mock import MagicMock, patch, AsyncMock
 
-from src.domain.exceptions import InvalidTimeRangeError
-from src.application.read_model.place_read_model import PlaceReadModel
+from src.modules.core.domain.exceptions import InvalidTimeRangeError
+from src.modules.core.application.read_model.place_read_model import PlaceReadModel
 
 class TestGetAllPlaces:
     def test_returns_list(self, client):
@@ -13,7 +13,7 @@ class TestGetAllPlaces:
             close_time="19:00",
             status="bar",
         )
-        with patch("src.presentation.control_place.GetAllPlacesHandler") as MockHandler:
+        with patch("src.modules.core.presentation.control_place.GetAllPlacesHandler") as MockHandler:
             MockHandler.return_value.handle.return_value = [read_model]
             resp = client.get("/place/all")
 
@@ -24,7 +24,7 @@ class TestGetAllPlaces:
         assert data[0]["id"] == 1
 
     def test_empty_list(self, client):
-        with patch("src.presentation.control_place.GetAllPlacesHandler") as MockHandler:
+        with patch("src.modules.core.presentation.control_place.GetAllPlacesHandler") as MockHandler:
             MockHandler.return_value.handle.return_value = []
             resp = client.get("/place/all")
 
@@ -36,7 +36,7 @@ class TestGetAllPlaces:
             PlaceReadModel(id=i, location=f"Вул. {i}", open_time="10:00", close_time="20:00", status="bar")
             for i in range(3)
         ]
-        with patch("src.presentation.control_place.GetAllPlacesHandler") as MockHandler:
+        with patch("src.modules.core.presentation.control_place.GetAllPlacesHandler") as MockHandler:
             MockHandler.return_value.handle.return_value = places
             resp = client.get("/place/all")
 
@@ -44,15 +44,15 @@ class TestGetAllPlaces:
         assert len(resp.json()) == 3
 
     def test_no_auth_required(self, client):
-        with patch("src.presentation.control_place.GetAllPlacesHandler") as MockHandler:
+        with patch("src.modules.core.presentation.control_place.GetAllPlacesHandler") as MockHandler:
             MockHandler.return_value.handle.return_value = []
             resp = client.get("/place/all")
         assert resp.status_code == 200
 
 class TestCreatePlace:
     def test_success_returns_201(self, admin_client):
-        with patch("src.presentation.control_place.CreatePlaceHandler") as MockHandler:
-            MockHandler.return_value.handle.return_value = 10
+        with patch("src.modules.core.presentation.control_place.CreatePlaceHandler") as MockHandler:
+            MockHandler.return_value.handle = AsyncMock(return_value=10)
             resp = admin_client.post(
                 "/place/create",
                 params={
@@ -68,8 +68,8 @@ class TestCreatePlace:
         assert "message" in resp.json()
 
     def test_invalid_hours_returns_400(self, admin_client):
-        with patch("src.presentation.control_place.CreatePlaceHandler") as MockHandler:
-            MockHandler.return_value.handle.side_effect = InvalidTimeRangeError()
+        with patch("src.modules.core.presentation.control_place.CreatePlaceHandler") as MockHandler:
+            MockHandler.return_value.handle = AsyncMock(side_effect=InvalidTimeRangeError())
             resp = admin_client.post(
                 "/place/create",
                 params={
@@ -102,8 +102,8 @@ class TestCreatePlace:
         assert resp.status_code == 403
 
     def test_handler_receives_correct_command(self, admin_client):
-        with patch("src.presentation.control_place.CreatePlaceHandler") as MockHandler:
-            MockHandler.return_value.handle.return_value = 1
+        with patch("src.modules.core.presentation.control_place.CreatePlaceHandler") as MockHandler:
+            MockHandler.return_value.handle = AsyncMock(return_value=1)
             admin_client.post(
                 "/place/create",
                 params={
@@ -120,8 +120,8 @@ class TestCreatePlace:
 
 class TestDeletePlace:
     def test_success_returns_200(self, admin_client):
-        with patch("src.presentation.control_place.DeletePlaceHandler") as MockHandler:
-            MockHandler.return_value.handle.return_value = None
+        with patch("src.modules.core.presentation.control_place.DeletePlaceHandler") as MockHandler:
+            MockHandler.return_value.handle = AsyncMock(return_value=None)
             resp = admin_client.delete("/place/1")
 
         assert resp.status_code == 200
@@ -132,8 +132,8 @@ class TestDeletePlace:
         assert resp.status_code == 403
 
     def test_delete_calls_handler_with_correct_id(self, admin_client):
-        with patch("src.presentation.control_place.DeletePlaceHandler") as MockHandler:
-            MockHandler.return_value.handle.return_value = None
+        with patch("src.modules.core.presentation.control_place.DeletePlaceHandler") as MockHandler:
+            MockHandler.return_value.handle = AsyncMock(return_value=None)
             admin_client.delete("/place/42")
 
         command = MockHandler.return_value.handle.call_args[0][0]

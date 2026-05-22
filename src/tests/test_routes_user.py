@@ -1,12 +1,12 @@
 import pytest
-from unittest.mock import MagicMock, patch
+from unittest.mock import MagicMock, patch, AsyncMock
 
-from src.domain.exceptions import UserAlreadyExistsError
+from src.modules.core.domain.exceptions import UserAlreadyExistsError
 
 class TestRegisterRoute:
     def test_success_returns_201(self, client):
-        with patch("src.presentation.control_user.CreateUserHandler") as MockHandler:
-            MockHandler.return_value.handle.return_value = 1
+        with patch("src.modules.core.presentation.control_user.CreateUserHandler") as MockHandler:
+            MockHandler.return_value.handle = AsyncMock(return_value=1)
             resp = client.post(
                 "/users/register",
                 json={
@@ -21,8 +21,8 @@ class TestRegisterRoute:
         assert "message" in resp.json()
 
     def test_duplicate_email_returns_400(self, client):
-        with patch("src.presentation.control_user.CreateUserHandler") as MockHandler:
-            MockHandler.return_value.handle.side_effect = UserAlreadyExistsError()
+        with patch("src.modules.core.presentation.control_user.CreateUserHandler") as MockHandler:
+            MockHandler.return_value.handle = AsyncMock(side_effect=UserAlreadyExistsError())
             resp = client.post(
                 "/users/register",
                 json={
@@ -56,8 +56,8 @@ class TestRegisterRoute:
         assert resp.status_code == 422
 
     def test_register_with_phone_only_succeeds(self, client):
-        with patch("src.presentation.control_user.CreateUserHandler") as MockHandler:
-            MockHandler.return_value.handle.return_value = 2
+        with patch("src.modules.core.presentation.control_user.CreateUserHandler") as MockHandler:
+            MockHandler.return_value.handle = AsyncMock(return_value=2)
             resp = client.post(
                 "/users/register",
                 json={
@@ -70,8 +70,8 @@ class TestRegisterRoute:
         assert resp.status_code == 201
 
     def test_handler_receives_correct_command(self, client):
-        with patch("src.presentation.control_user.CreateUserHandler") as MockHandler:
-            MockHandler.return_value.handle.return_value = 3
+        with patch("src.modules.core.presentation.control_user.CreateUserHandler") as MockHandler:
+            MockHandler.return_value.handle = AsyncMock(return_value=3)
             client.post(
                 "/users/register",
                 json={
@@ -92,7 +92,7 @@ class TestLoginRoute:
         mock_user = MagicMock()
         mock_user.user_id = 5
 
-        with patch("src.presentation.control_user.AuthenticateUserHandler") as MockHandler:
+        with patch("src.modules.core.presentation.control_user.AuthenticateUserHandler") as MockHandler:
             MockHandler.return_value.handle.return_value = mock_user
             resp = client.post(
                 "/users/login",
@@ -104,7 +104,7 @@ class TestLoginRoute:
         assert resp.json()["token_type"] == "bearer"
 
     def test_wrong_credentials_returns_401(self, client):
-        with patch("src.presentation.control_user.AuthenticateUserHandler") as MockHandler:
+        with patch("src.modules.core.presentation.control_user.AuthenticateUserHandler") as MockHandler:
             MockHandler.return_value.handle.return_value = False
             resp = client.post(
                 "/users/login",
@@ -121,7 +121,7 @@ class TestLoginRoute:
         mock_user = MagicMock()
         mock_user.user_id = 1
 
-        with patch("src.presentation.control_user.AuthenticateUserHandler") as MockHandler:
+        with patch("src.modules.core.presentation.control_user.AuthenticateUserHandler") as MockHandler:
             MockHandler.return_value.handle.return_value = mock_user
             client.post(
                 "/users/login",

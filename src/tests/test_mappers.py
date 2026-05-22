@@ -1,10 +1,10 @@
 import pytest
 from unittest.mock import MagicMock
 
-from src.infrastructure.mappers import UserMapper, PlaceMapper, ReviewMapper
-from src.infrastructure.models import Users as DBUser, Place as DBPlace, Review as DBReview
-from src.domain.entities import User as DomainUser, Place as DomainPlace, Review as DomainReview
-from src.domain.value_objects import Email, TimeRange
+from src.modules.core.infrastructure.mappers import UserMapper, PlaceMapper, ReviewMapper
+from src.modules.core.infrastructure.models import Users as DBUser, Place as DBPlace, Review as DBReview
+from src.modules.core.domain.entities import User as DomainUser, Place as DomainPlace, Review as DomainReview
+from src.modules.core.domain.value_objects import Email, TimeRange
 
 class TestUserMapper:
     def _db_user(self, **kwargs):
@@ -62,7 +62,6 @@ class TestUserMapper:
         assert db.is_admin is False
 
     def test_roundtrip_to_db_then_to_domain(self):
-        """to_domain(to_db(domain)) should reproduce the same domain entity."""
         original = DomainUser(
             user_id=3,
             user_name="Галина",

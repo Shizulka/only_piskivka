@@ -13,16 +13,16 @@ os.environ.setdefault("DB_NAME", "test_db")
 _mock.patch("sqlalchemy.create_engine", return_value=_mock.MagicMock()).start()
 _mock.patch("sqlalchemy.MetaData.create_all", return_value=None).start()
 
-sys.path.insert(0, os.path.join(os.path.dirname(__file__), ".."))
+sys.path.insert(0, os.path.join(os.path.dirname(__file__), "..", "..", ".."))
 
 import pytest
 from unittest.mock import MagicMock
 from fastapi import FastAPI
 from fastapi.testclient import TestClient
 
-from src.presentation import control_place, control_user, control_review
-from src.infrastructure.database import get_db
-from src.infrastructure.dependencies import get_current_user, get_current_admin_user
+from src.modules.core.presentation import control_place, control_user, control_review
+from src.modules.core.infrastructure.database import get_db
+from src.modules.core.infrastructure.dependencies import get_current_user, get_current_admin_user
 
 _app = FastAPI()
 _app.include_router(control_place.router)

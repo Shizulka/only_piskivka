@@ -1,28 +1,32 @@
 import pytest
+import asyncio
 from unittest.mock import MagicMock, patch
 
-from src.application.commands.user_command import CreateUserCommand, DeleteUserCommand
-from src.application.commands.user_command_handlers import CreateUserHandler, DeleteUserHandler
-from src.application.commands.place_commands import CreatePlaceCommand, DeletePlaceCommand
-from src.application.commands.place_command_handlers import CreatePlaceHandler, DeletePlaceHandler
-from src.application.commands.review_command import CreateReviewCommand, DeleteReviewCommand
-from src.application.commands.review_command_handlers import CreateReviewHandler, DeleteReviewHandler
+from src.modules.core.application.commands.user_command import CreateUserCommand, DeleteUserCommand
+from src.modules.core.application.commands.user_command_handlers import CreateUserHandler, DeleteUserHandler
+from src.modules.core.application.commands.place_commands import CreatePlaceCommand, DeletePlaceCommand
+from src.modules.core.application.commands.place_command_handlers import CreatePlaceHandler, DeletePlaceHandler
+from src.modules.core.application.commands.review_command import CreateReviewCommand, DeleteReviewCommand
+from src.modules.core.application.commands.review_command_handlers import CreateReviewHandler, DeleteReviewHandler
 
-from src.application.queries.user_queries import AuthenticateUserQuery
-from src.application.queries.user_queries_handlers import AuthenticateUserHandler
-from src.application.queries.place_queries import GetAllPlacesQuery
-from src.application.queries.place_query_handlers import GetAllPlacesHandler
-from src.application.queries.review_query import GetAllReviewQuery
-from src.application.queries.review_query_handlers import GetAllReviewsHandler
+from src.modules.core.application.queries.user_queries import AuthenticateUserQuery
+from src.modules.core.application.queries.user_queries_handlers import AuthenticateUserHandler
+from src.modules.core.application.queries.place_queries import GetAllPlacesQuery
+from src.modules.core.application.queries.place_query_handlers import GetAllPlacesHandler
+from src.modules.core.application.queries.review_query import GetAllReviewQuery
+from src.modules.core.application.queries.review_query_handlers import GetAllReviewsHandler
 
-from src.domain.exceptions import (
+from src.modules.core.domain.exceptions import (
     UserAlreadyExistsError,
     InvalidTimeRangeError,
     EmptyReviewError,
 )
-from src.domain.value_objects import TimeRange
-from src.domain.entities import User, Place, Review
-from src.domain.value_objects import Email
+from src.modules.core.domain.value_objects import TimeRange
+from src.modules.core.domain.entities import User, Place, Review
+from src.modules.core.domain.value_objects import Email
+
+def run(coro):
+    return asyncio.run(coro)
 
 class TestCreateUserHandler:
     def setup_method(self):
@@ -41,8 +45,8 @@ class TestCreateUserHandler:
             phone_number=None,
             user_name="Василь",
         )
-        with patch("src.application.commands.user_command_handlers.get_password_hash", return_value="hashed"):
-            result = self.handler.handle(command)
+        with patch("src.modules.core.application.commands.user_command_handlers.get_password_hash", return_value="hashed"):
+            result = run(self.handler.handle(command))
 
         assert result == 42
         self.mock_repo.create.assert_called_once()
@@ -56,9 +60,9 @@ class TestCreateUserHandler:
             phone_number=None,
             user_name="Василь",
         )
-        with patch("src.application.commands.user_command_handlers.get_password_hash", return_value="hashed"):
+        with patch("src.modules.core.application.commands.user_command_handlers.get_password_hash", return_value="hashed"):
             with pytest.raises(UserAlreadyExistsError):
-                self.handler.handle(command)
+                run(self.handler.handle(command))
 
     def test_create_invalid_email_raises(self):
         self.mock_repo.get_user_by_email.return_value = None
@@ -69,9 +73,9 @@ class TestCreateUserHandler:
             phone_number=None,
             user_name="Василь",
         )
-        with patch("src.application.commands.user_command_handlers.get_password_hash", return_value="hashed"):
+        with patch("src.modules.core.application.commands.user_command_handlers.get_password_hash", return_value="hashed"):
             with pytest.raises(Exception):
-                self.handler.handle(command)
+                run(self.handler.handle(command))
 
     def test_password_is_hashed_before_storage(self):
         self.mock_repo.get_user_by_email.return_value = None
@@ -85,8 +89,8 @@ class TestCreateUserHandler:
             phone_number=None,
             user_name="Тест",
         )
-        with patch("src.application.commands.user_command_handlers.get_password_hash", return_value="hashed_value") as mock_hash:
-            self.handler.handle(command)
+        with patch("src.modules.core.application.commands.user_command_handlers.get_password_hash", return_value="hashed_value") as mock_hash:
+            run(self.handler.handle(command))
 
         mock_hash.assert_called_once_with("plaintext")
         user_arg = self.mock_repo.create.call_args[0][0]
@@ -98,8 +102,10 @@ class TestDeleteUserHandler:
         self.handler = DeleteUserHandler(self.mock_repo)
 
     def test_delete_calls_repo(self):
+        self.mock_repo.get_user_by_id.return_value = MagicMock()
+        self.mock_repo.delete.return_value = True
         command = DeleteUserCommand(user_id=5)
-        self.handler.handle(command)
+        run(self.handler.handle(command))
         self.mock_repo.delete.assert_called_once_with(5)
 
 class TestCreatePlaceHandler:
@@ -110,6 +116,9 @@ class TestCreatePlaceHandler:
     def test_create_success_returns_place_id(self):
         created = MagicMock()
         created.place_id = 7
+        created.location = "Вул. Садова, 1"
+        created.working_hours = TimeRange("09:00", "21:00")
+        created.status = "bar"
         self.mock_repo.create.return_value = created
 
         command = CreatePlaceCommand(
@@ -118,7 +127,7 @@ class TestCreatePlaceHandler:
             close_time="21:00",
             status="bar",
         )
-        result = self.handler.handle(command)
+        result = run(self.handler.handle(command))
 
         assert result == 7
         self.mock_repo.create.assert_called_once()
@@ -131,7 +140,7 @@ class TestCreatePlaceHandler:
             status="cafe",
         )
         with pytest.raises(InvalidTimeRangeError):
-            self.handler.handle(command)
+            run(self.handler.handle(command))
 
     def test_equal_hours_raises(self):
         command = CreatePlaceCommand(
@@ -141,7 +150,7 @@ class TestCreatePlaceHandler:
             status="shop",
         )
         with pytest.raises(InvalidTimeRangeError):
-            self.handler.handle(command)
+            run(self.handler.handle(command))
 
 class TestDeletePlaceHandler:
     def setup_method(self):
@@ -149,8 +158,9 @@ class TestDeletePlaceHandler:
         self.handler = DeletePlaceHandler(self.mock_repo)
 
     def test_delete_calls_repo(self):
+        self.mock_repo.delete.return_value = True
         command = DeletePlaceCommand(place_id=3)
-        self.handler.handle(command)
+        run(self.handler.handle(command))
         self.mock_repo.delete.assert_called_once_with(3)
 
 class TestCreateReviewHandler:
@@ -161,10 +171,13 @@ class TestCreateReviewHandler:
     def test_create_success_returns_review_id(self):
         created = MagicMock()
         created.review_id = 99
+        created.place_id = 1
+        created.user_id = 2
+        created.content_in = "Чудово!"
         self.mock_repo.create.return_value = created
 
         command = CreateReviewCommand(place_id=1, user_id=2, content_in="Чудово!")
-        result = self.handler.handle(command)
+        result = run(self.handler.handle(command))
 
         assert result == 99
         self.mock_repo.create.assert_called_once()
@@ -172,12 +185,12 @@ class TestCreateReviewHandler:
     def test_empty_content_raises(self):
         command = CreateReviewCommand(place_id=1, user_id=2, content_in="")
         with pytest.raises((EmptyReviewError, TypeError)):
-            self.handler.handle(command)
+            run(self.handler.handle(command))
 
     def test_whitespace_content_raises(self):
         command = CreateReviewCommand(place_id=1, user_id=2, content_in="   ")
         with pytest.raises((EmptyReviewError, TypeError)):
-            self.handler.handle(command)
+            run(self.handler.handle(command))
 
 class TestDeleteReviewHandler:
     def setup_method(self):
@@ -185,8 +198,12 @@ class TestDeleteReviewHandler:
         self.handler = DeleteReviewHandler(self.mock_repo)
 
     def test_delete_calls_repo(self):
+        mock_review = MagicMock()
+        mock_review.place_id = 1
+        self.mock_repo.get_by_id.return_value = mock_review
+        self.mock_repo.delete.return_value = True
         command = DeleteReviewCommand(review_id=11, user_id=1)
-        self.handler.handle(command)
+        run(self.handler.handle(command))
         self.mock_repo.delete.assert_called_once_with(11)
 
 class TestAuthenticateUserHandler:
@@ -200,7 +217,7 @@ class TestAuthenticateUserHandler:
         self.mock_repo.get_user_by_email.return_value = mock_user
 
         query = AuthenticateUserQuery(username="user@test.com", password="pw")
-        with patch("src.application.queries.user_queries_handlers.verify_password", return_value=True):
+        with patch("src.modules.core.application.queries.user_queries_handlers.verify_password", return_value=True):
             result = self.handler.handle(query)
 
         assert result == mock_user
@@ -212,7 +229,7 @@ class TestAuthenticateUserHandler:
         self.mock_repo.get_user_by_phone.return_value = mock_user
 
         query = AuthenticateUserQuery(username="+380671234567", password="pw")
-        with patch("src.application.queries.user_queries_handlers.verify_password", return_value=True):
+        with patch("src.modules.core.application.queries.user_queries_handlers.verify_password", return_value=True):
             result = self.handler.handle(query)
 
         assert result == mock_user
@@ -223,7 +240,7 @@ class TestAuthenticateUserHandler:
         self.mock_repo.get_user_by_email.return_value = mock_user
 
         query = AuthenticateUserQuery(username="user@test.com", password="wrong")
-        with patch("src.application.queries.user_queries_handlers.verify_password", return_value=False):
+        with patch("src.modules.core.application.queries.user_queries_handlers.verify_password", return_value=False):
             result = self.handler.handle(query)
 
         assert result is False
